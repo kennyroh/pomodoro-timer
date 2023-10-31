@@ -1,5 +1,6 @@
+import React from 'react';  // React를 import
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
-import ExploreContainer from '../components/ExploreContainer';
+import ExploreContainer from '../components/PomodoroTimer';
 import './Tab3.css';
 
 const Tab3: React.FC = () => {

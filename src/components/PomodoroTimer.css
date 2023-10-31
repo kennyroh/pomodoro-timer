@@ -1,0 +1,50 @@
+.container {
+  text-align: center;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.container strong {
+  font-size: 20px;
+  line-height: 26px;
+}
+
+.container p {
+  font-size: 16px;
+  line-height: 22px;
+  color: #8c8c8c;
+  margin: 0;
+}
+
+.container a {
+  text-decoration: none;
+}
+
+.bordered-grid {
+  border: 1px solid black;
+}
+
+.timer-text {
+  font-size: 6em;
+  font-weight: bold;
+}
+
+.timer-buttons {
+  font-size: 2em;
+}
+
+.title-pop {
+  transition: transform 0.3s ease-in-out;
+  transform: scale(1.1);
+}
+
+.title-pop.large-font {
+  font-size: 36px;
+}
+
+.large-title-font {
+  font-size: 48px;  /* 원하는 크기로 설정 */
+}
