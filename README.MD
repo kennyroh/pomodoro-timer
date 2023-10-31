@@ -28,3 +28,8 @@ Pomodoro Timer app....
 git clone https://github.com/your-repo/pomodoro-timer.git
 cd pomodoro-timer
 npm install
+```
+
+## Built With
+* ReactJS
+* Ionic Framework
