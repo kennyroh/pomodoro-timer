@@ -4,7 +4,7 @@
 Pomodoro Timer app....
 
 ![App Settings Screen](img.png)
-![App Main Screen](img1.png)
+![App Main Screen](img_1.png)
 
 ## Features
 - 집중 시간 설정
