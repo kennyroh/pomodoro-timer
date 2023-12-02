@@ -8,15 +8,19 @@ import {
     IonButton,
     IonCol,
     IonContent,
-    IonGrid,
-    IonRow, IonTitle,
+    IonGrid, IonRadio, IonRadioGroup,
+    IonRow, IonText, IonTitle,
 } from '@ionic/react';
 // import { LocalNotifications } from '@capacitor/local-notifications';
 import { SettingsContext } from '../contexts/SettingsContext';
 import './PomodoroTimer.css';
 
+// daily_download_20190509_128.mp3 Daily Download: Alexander Borodin - String Quartet No. 2: Notturno
+// "ambient-classical-guitar-144998.mp3"; // Music by William_King from Pixabay
 const audioSrc = "Rain-white-noise.mp3";
-const restAudioSrc = "ambient-classical-guitar-144998.mp3"; // Music by William_King from Pixabay
+const restAudioSrc = "daily_download_20190509_128.mp3";
+// restAudioSrc의 제목 변수 선언.
+const restAudioTitle = "Alexander Borodin - String Quartet No. 2: Notturno";
 const audio1 = new Audio(audioSrc);
 const audio2 = new Audio(audioSrc);
 const restAudio = new Audio(restAudioSrc);
@@ -158,26 +162,37 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = () => {
     }, [isActive, seconds, minutes]);
 
     const toggle = () => {
-        setIsActive(!isActive);
-
-        if (!isActive) {
-            if (timerState === 'focus') {
-                console.log('toggle playaudio focus');
-                playAudio(audio1, audio2);
-            } else {
-                console.log('toggle playaudio rest');
-                playAudio(restAudio);
-            }
+        if (isActive && (audio1.currentTime > 0 || audio2.currentTime > 0 || restAudio.currentTime > 0)) {
+            console.log('toggle reset');
+            reset();
         } else {
-            pauseAudio([audio1, audio2]);
-            pauseAudio([restAudio]);
+            setIsActive(!isActive);
+
+            if (!isActive) {
+                if (timerState === 'focus') {
+                    console.log('toggle playaudio focus');
+                    playAudio(audio1, audio2);
+                } else {
+                    console.log('toggle playaudio rest');
+                    playAudio(restAudio);
+                }
+            } else {
+                pauseAudio([audio1, audio2]);
+                pauseAudio([restAudio]);
+            }
         }
     };
 
     const reset = () => {
+        console.log('reset: ' + timerState);
         setIsActive(false);
-        setTimerState('focus');
-        setMinutes(minutesSetting);
+        // setTimerState('focus');
+        if (timerState === 'focus') {
+            setMinutes(minutesSetting);
+        } else {
+            setMinutes(restSetting);
+        }
+        // setMinutes(minutesSetting);
         // setMinutes(0);
         setSeconds(0);
     };
@@ -200,17 +215,32 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = () => {
         setTimeout(() => setTitleClass('large-font'), 500); // 0.5초 후에 'title-pop' 효과 제거
     };
 
+    const handleTimerStateChange = (event: CustomEvent) => {
+        toggle();
+        setTimerState(event.detail.value);
+    };
+
     return (
         <IonContent className="ion-padding" style={{ marginTop: '50px' }}>
-            <IonTitle className={`large-title-font ${titleClass}`} onClick={handleTitleClick}>
+            <IonText className={`large-title-font` } onClick={handleTitleClick}>
                 {timerState === 'focus'? '집중 시간' : '휴식 시간'}
-            </IonTitle>
+            </IonText>
+            <br />
+            <IonRadioGroup value={timerState} onIonChange={handleTimerStateChange}>
+                <IonRadio value="focus" slot="start">집중 시간</IonRadio>
+                <IonRadio value="break" slot="start">휴식 시간</IonRadio>
+            </IonRadioGroup>
             <IonGrid className="bordered-grid">
                 <IonRow className="ion-text-center">
                     <IonCol>
                         <h1 className="timer-text">
                             {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
                         </h1>
+                    </IonCol>
+                </IonRow>
+                <IonRow>
+                    <IonCol>
+                        {timerState == 'break' && <IonText>{restAudioTitle}</IonText>}
                     </IonCol>
                 </IonRow>
                 <IonRow>
@@ -221,7 +251,9 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = () => {
                         <IonButton onClick={reset}>Reset</IonButton>
                     </IonCol>
                 </IonRow>
+
             </IonGrid>
+
         </IonContent>
     );
 };

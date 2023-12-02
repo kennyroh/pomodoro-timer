@@ -3,8 +3,8 @@
 ## Overview
 Pomodoro Timer app....
 
-![App Main Screen](img1.png)
 ![App Settings Screen](img.png)
+![App Main Screen](img1.png)
 
 ## Features
 - 집중 시간 설정
