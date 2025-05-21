@@ -1,259 +1,204 @@
-// filename: PomodoroTimer.tsx
-interface PomodoroTimerProps {
-    name: string;
-    // ...other props
-}
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
 import {
     IonButton,
     IonCol,
     IonContent,
-    IonGrid, IonRadio, IonRadioGroup,
-    IonRow, IonText, IonTitle,
-} from '@ionic/react';
-// import { LocalNotifications } from '@capacitor/local-notifications';
-import { SettingsContext } from '../contexts/SettingsContext';
-import './PomodoroTimer.css';
+    IonGrid,
+    IonRadio,
+    IonRadioGroup,
+    IonRow,
+    IonText,
+} from "@ionic/react";
+import { SettingsContext } from "../contexts/SettingsContext";
+import "./PomodoroTimer.css";
 
-// daily_download_20190509_128.mp3 Daily Download: Alexander Borodin - String Quartet No. 2: Notturno
-// "ambient-classical-guitar-144998.mp3"; // Music by William_King from Pixabay
-const audioSrc = "Rain-white-noise.mp3";
-const restAudioSrc = "daily_download_20190509_128.mp3";
-// restAudioSrc의 제목 변수 선언.
-const restAudioTitle = "Alexander Borodin - String Quartet No. 2: Notturno";
-const audio1 = new Audio(audioSrc);
-const audio2 = new Audio(audioSrc);
-const restAudio = new Audio(restAudioSrc);
-audio1.load();  // 미리 로딩
-audio2.load();  // 미리 로딩
-// restAudio.load();  // 미리 로딩
+interface PomodoroTimerProps {
+    name: string;
+}
 
-audio1.loop = false;
-audio2.loop = false;
-restAudio.loop = true;
+const FOCUS_AUDIO_SRC = "heavy-rain-the-day-145472.mp3";
+const BREAK_AUDIO_SRC = "daily_download_20190509_128.mp3";
+const REST_AUDIO_TITLE = "Alexander Borodin - String Quartet No. 2: Notturno";
 
-const PomodoroTimer: React.FC<PomodoroTimerProps> = () => {
+type TimerMode = "focus" | "break";
+
+const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ name }) => {
     const context = useContext(SettingsContext);
     const minutesSetting = context?.minutesSetting ?? 0;
-    const restSetting = context?.restSetting ?? 0; // 추가: 휴식 시간 설정
-    const [timerState, setTimerState] = useState<'focus' | 'break'>('focus'); // 추가: 타이머 상태
+    const restSetting = context?.restSetting ?? 0;
+
+    // Main state
+    const [mode, setMode] = useState<TimerMode>("focus");
     const [minutes, setMinutes] = useState(minutesSetting);
     const [seconds, setSeconds] = useState(0);
     const [isActive, setIsActive] = useState(false);
+    const [titleClass, setTitleClass] = useState("");
+    // Volume state: 1.0 = 100%
+    const [volume, setVolume] = useState(1.0);
 
+    // Audio Refs (avoid recreation on render)
+    const focusAudioRef = useRef<HTMLAudioElement | null>(null);
+    const breakAudioRef = useRef<HTMLAudioElement | null>(null);
+
+    // === AUDIO SETUP & HELPERS ===
     useEffect(() => {
-        console.log('useEffect: timerState, minutesSetting, restSetting');
-        if (timerState === 'focus') {
-            setMinutes(minutesSetting);
-        } else {
-            setMinutes(restSetting);
-        }
-    }, [timerState, minutesSetting, restSetting]);
+        focusAudioRef.current = new Audio(FOCUS_AUDIO_SRC);
+        focusAudioRef.current.loop = true;
 
-
-    // useEffect(() => {
-    //     console.log('useEffect: minutesSetting')
-    //     setMinutes(minutesSetting);
-    // }, [minutesSetting]);
-
-    // useEffect(() => {
-    //     if (isActive) {
-    //         audio.play().then(r => console.log('r:' + r));
-    //     } else {
-    //         audio.pause();
-    //         audio.currentTime = 0;
-    //     }
-    // }, [isActive]);
-
-
-    const playAudio = (audioType1: HTMLAudioElement, audioType2?: HTMLAudioElement) => {
-        // Function to handle the ending of audioType1
-        const handleAudioType1End = function() {
-            console.log('audioType1');
-            audioType2?.play().catch(e => console.error(e));
-        };
-
-        // Function to handle the ending of audioType2
-        const handleAudioType2End = function() {
-            console.log('audioType2');
-            audioType1.play().catch(e => console.error(e));
-        };
-
-        // Remove existing event listeners
-        audioType1.removeEventListener('ended', handleAudioType1End);
-        audioType2?.removeEventListener('ended', handleAudioType2End);
-
-    if (audioType2) {
-        // Add new event listeners
-        audioType1.addEventListener('ended', handleAudioType1End);
-        audioType2.addEventListener('ended', handleAudioType2End);
-    } else {
-        console.log('else audioType1');
-        audioType1.loop = true;
-        audioType1.play().catch(e => console.error(e));
-    }
-    console.log('audioType');
-    audioType1.loop = true; // Add this line to enable looping
-    audioType1.play().catch(e => console.error(e));
-};
-
-
-    const pauseAudio = (audioTypes: HTMLAudioElement[]) => {
-        audioTypes.forEach(audioType => {
-            audioType.pause();
-            audioType.currentTime = 0;
-        });
-    };
-
-
-    useEffect(() => {
-        console.log('useEffect: isActive, timerState')
-        if (isActive) {
-            if (timerState === 'focus') {
-                playAudio(audio1, audio2);
-                pauseAudio([restAudio]);
-            } else {
-                restAudio.play().catch(e => console.error(e));
-                pauseAudio([audio1, audio2]);
-            }
-        } else {
-            pauseAudio([audio1, audio2]);
-            pauseAudio([restAudio]);
-        }
-    }, [isActive, timerState]);
-
-
-    useEffect(() => {
-        let interval: NodeJS.Timeout | null = null;
-        if (isActive) {
-            interval = setInterval(() => {
-                if (minutes === 0 && seconds === 0) {
-                    if (timerState === 'focus') {
-                        setTimerState('break');
-                    } else {
-                        setTimerState('focus');
-                    }
-                    // setIsActive(true);
-                }
-                if (seconds > 0) {
-                    setSeconds(seconds - 1);
-                } else if (seconds === 0) {
-                    if (minutes === 0) {
-                        if(interval != null) {
-                            clearInterval(interval);
-                        }
-                    } else {
-                        setMinutes(minutes - 1);
-                        setSeconds(59);
-                    }
-                }
-            }, 1000);
-        } else {
-            if(interval != null) {
-                clearInterval(interval);
-            }
-        }
+        breakAudioRef.current = new Audio(BREAK_AUDIO_SRC);
+        breakAudioRef.current.loop = true;
 
         return () => {
-            if(interval!= null) {
-                clearInterval(interval);
+            focusAudioRef.current?.pause();
+            breakAudioRef.current?.pause();
+        };
+    }, []); // only on mount/unmount
+
+    // Set audio volume when volume state changes
+    useEffect(() => {
+        if (focusAudioRef.current) focusAudioRef.current.volume = volume;
+        if (breakAudioRef.current) breakAudioRef.current.volume = volume;
+    }, [volume]);
+
+    const playAudio = useCallback((audio: HTMLAudioElement | null) => {
+        if (!audio) return;
+        audio.currentTime = 0;
+        audio.play().catch(console.error);
+    }, []);
+
+    const pauseAllAudio = useCallback(() => {
+        focusAudioRef.current?.pause();
+        breakAudioRef.current?.pause();
+        if (focusAudioRef.current) focusAudioRef.current.currentTime = 0;
+        if (breakAudioRef.current) breakAudioRef.current.currentTime = 0;
+    }, []);
+
+    // === TIMER MODE & INITIALIZATION ===
+    useEffect(() => {
+        // Reset minutes when mode or settings change
+        setMinutes(mode === "focus" ? minutesSetting : restSetting);
+        setSeconds(0);
+    }, [mode, minutesSetting, restSetting]);
+
+    // === TIMER EFFECT ===
+    useEffect(() => {
+        if (!isActive) return;
+
+        const tick = () => {
+            if (minutes === 0 && seconds === 0) {
+                setMode((prev) => (prev === "focus" ? "break" : "focus"));
+                return;
+            }
+            if (seconds > 0) {
+                setSeconds((s) => s - 1);
+            } else if (minutes > 0) {
+                setMinutes((m) => m - 1);
+                setSeconds(59);
             }
         };
-    }, [isActive, seconds, minutes]);
 
-    const toggle = () => {
-        if (isActive && (audio1.currentTime > 0 || audio2.currentTime > 0 || restAudio.currentTime > 0)) {
-            console.log('toggle reset');
-            reset();
-        } else {
-            setIsActive(!isActive);
+        const interval = setInterval(tick, 1000);
 
-            if (!isActive) {
-                if (timerState === 'focus') {
-                    console.log('toggle playaudio focus');
-                    playAudio(audio1, audio2);
-                } else {
-                    console.log('toggle playaudio rest');
-                    playAudio(restAudio);
-                }
-            } else {
-                pauseAudio([audio1, audio2]);
-                pauseAudio([restAudio]);
-            }
+        return () => clearInterval(interval);
+    }, [isActive, minutes, seconds]);
+
+    // === AUDIO ON MODE/ACTIVATION CHANGE ===
+    useEffect(() => {
+        if (!isActive) {
+            pauseAllAudio();
+            return;
         }
+        if (mode === "focus") {
+            playAudio(focusAudioRef.current);
+            breakAudioRef.current?.pause();
+        } else {
+            playAudio(breakAudioRef.current);
+            focusAudioRef.current?.pause();
+        }
+    }, [isActive, mode, playAudio, pauseAllAudio]);
+
+    // === HANDLERS ===
+    const handleToggle = () => {
+        setIsActive((prev) => !prev);
     };
 
-    const reset = () => {
-        console.log('reset: ' + timerState);
+    const handleReset = () => {
         setIsActive(false);
-        // setTimerState('focus');
-        if (timerState === 'focus') {
-            setMinutes(minutesSetting);
-        } else {
-            setMinutes(restSetting);
-        }
-        // setMinutes(minutesSetting);
-        // setMinutes(0);
+        setMinutes(mode === "focus" ? minutesSetting : restSetting);
         setSeconds(0);
+        pauseAllAudio();
     };
-
-    const [titleClass, setTitleClass] = useState<string>('');
 
     const handleTitleClick = () => {
-        if (timerState === 'focus') {
-            setIsActive(false);
-            setTimerState('break');
-            setMinutes(minutesSetting);
-            setSeconds(0);
-        } else {
-            setIsActive(false);
-            setTimerState('focus');
-            setMinutes(restSetting);
-            setSeconds(0);
-        }
-        setTitleClass('title-pop large-font');  // 'large-font' 클래스 추가
-        setTimeout(() => setTitleClass('large-font'), 500); // 0.5초 후에 'title-pop' 효과 제거
+        setIsActive(false);
+        setMode((prev) => (prev === "focus" ? "break" : "focus"));
+        setTitleClass("title-pop large-font");
+        setTimeout(() => setTitleClass("large-font"), 500);
     };
 
-    const handleTimerStateChange = (event: CustomEvent) => {
-        toggle();
-        setTimerState(event.detail.value);
+    const handleModeChange = (event: CustomEvent) => {
+        setIsActive(false);
+        setMode(event.detail.value);
     };
 
+    // === RENDER ===
     return (
-        <IonContent className="ion-padding" style={{ marginTop: '50px' }}>
-            <IonText className={`large-title-font` } onClick={handleTitleClick}>
-                {timerState === 'focus'? '집중 시간' : '휴식 시간'}
+        <IonContent className="ion-padding" style={{ marginTop: "50px" }}>
+            <IonText
+                className={`large-title-font ${titleClass}`}
+                onClick={handleTitleClick}
+            >
+                {mode === "focus" ? "집중 시간" : "휴식 시간"}
             </IonText>
             <br />
-            <IonRadioGroup value={timerState} onIonChange={handleTimerStateChange}>
-                <IonRadio value="focus" slot="start">집중 시간</IonRadio>
-                <IonRadio value="break" slot="start">휴식 시간</IonRadio>
+            <IonRadioGroup value={mode} onIonChange={handleModeChange}>
+                <IonRadio value="focus" slot="start">
+                    집중 시간
+                </IonRadio>
+                <IonRadio value="break" slot="start">
+                    휴식 시간
+                </IonRadio>
             </IonRadioGroup>
             <IonGrid className="bordered-grid">
                 <IonRow className="ion-text-center">
                     <IonCol>
                         <h1 className="timer-text">
-                            {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
+                            {String(minutes).padStart(2, "0")}:
+                            {String(seconds).padStart(2, "0")}
                         </h1>
                     </IonCol>
                 </IonRow>
                 <IonRow>
                     <IonCol>
-                        {timerState == 'break' && <IonText>{restAudioTitle}</IonText>}
+                        {mode === "break" && <IonText>{REST_AUDIO_TITLE}</IonText>}
                     </IonCol>
                 </IonRow>
                 <IonRow>
                     <IonCol className="ion-text-center timer-buttons">
-                        <IonButton onClick={toggle}>
-                            {isActive ? 'Pause' : 'Start'}
+                        <IonButton onClick={handleToggle}>
+                            {isActive ? "Pause" : "Start"}
                         </IonButton>
-                        <IonButton onClick={reset}>Reset</IonButton>
+                        <IonButton onClick={handleReset}>Reset</IonButton>
                     </IonCol>
                 </IonRow>
-
             </IonGrid>
-
+            {/* Volume Control */}
+            <div style={{ margin: "24px 0 0 0", textAlign: "center" }}>
+                <IonText>
+                    🔊 Volume: {Math.round(volume * 100)}%
+                </IonText>
+                <br />
+                <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={volume}
+                    onChange={e => setVolume(Number(e.target.value))}
+                    style={{ width: 180, marginTop: 8 }}
+                    aria-label="Volume control"
+                />
+            </div>
         </IonContent>
     );
 };

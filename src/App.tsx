@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import {
   IonApp,
@@ -34,64 +34,44 @@ import '@ionic/react/css/display.css';
 
 /* Theme variables */
 import './theme/variables.css';
-// import {createContext, useState} from "react";
-import {SettingsContext} from "./contexts/SettingsContext";
+import { SettingsProvider } from "./contexts/SettingsContext";
+
 setupIonicReact();
-//
-// type SettingsContextType = {
-//   minutesSetting: number;
-//   setMinutesSetting: React.Dispatch<React.SetStateAction<number>>;
-// };
-
-// const initialSettingsContext: SettingsContextType = {
-//   minutesSetting: 24,
-//   setMinutesSetting: () => {},
-// };
-
-// export const SettingsContext = createContext<SettingsContextType>(initialSettingsContext);
 
 const App: React.FC = () => {
-  const [minutesSetting, setMinutesSetting] = useState(25);
-  console.log("App:" + minutesSetting)
-  const [restSetting, setRestSetting] = useState(5);
-
   return (
-      <SettingsContext.Provider value={{minutesSetting, setMinutesSetting, restSetting, setRestSetting}}>
+    <SettingsProvider>
       <IonApp>
-          <IonReactRouter>
-            <IonTabs>
-              <IonRouterOutlet>
-                <Route exact path="/tab1">
-                  <Tab1 />
-                </Route>
-                <Route exact path="/tab2">
-                  <Tab2 />
-                </Route>
-                <Route path="/tab3">
-                  <Tab3 />
-                </Route>
-                <Route exact path="/">
-                  <Redirect to="/tab1" />
-                </Route>
-              </IonRouterOutlet>
-              <IonTabBar slot="bottom">
-                <IonTabButton tab="tab1" href="/tab1">
-                  <IonIcon aria-hidden="true" icon={timerOutline} />
-                  <IonLabel>타이머</IonLabel>
-                </IonTabButton>
-                <IonTabButton tab="tab2" href="/tab2">
-                  <IonIcon aria-hidden="true" icon={cog} />
-                  <IonLabel>설정</IonLabel>
-                </IonTabButton>
-                {/*<IonTabButton tab="tab3" href="/tab3">*/}
-                {/*  <IonIcon aria-hidden="true" icon={square} />*/}
-                {/*  <IonLabel>Tab 3</IonLabel>*/}
-                {/*</IonTabButton>*/}
-              </IonTabBar>
-            </IonTabs>
-          </IonReactRouter>
-        </IonApp>
-      </SettingsContext.Provider>
+        <IonReactRouter>
+          <IonTabs>
+            <IonRouterOutlet>
+              <Route exact path="/tab1">
+                <Tab1 />
+              </Route>
+              <Route exact path="/tab2">
+                <Tab2 />
+              </Route>
+              <Route path="/tab3">
+                <Tab3 />
+              </Route>
+              <Route exact path="/">
+                <Redirect to="/tab1" />
+              </Route>
+            </IonRouterOutlet>
+            <IonTabBar slot="bottom">
+              <IonTabButton tab="tab1" href="/tab1">
+                <IonIcon aria-hidden="true" icon={timerOutline} />
+                <IonLabel>타이머</IonLabel>
+              </IonTabButton>
+              <IonTabButton tab="tab2" href="/tab2">
+                <IonIcon aria-hidden="true" icon={cog} />
+                <IonLabel>설정</IonLabel>
+              </IonTabButton>
+            </IonTabBar>
+          </IonTabs>
+        </IonReactRouter>
+      </IonApp>
+    </SettingsProvider>
   );
 };
 

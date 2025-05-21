@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext} from 'react';
 import {
     IonCol,
     IonContent,
@@ -14,8 +14,6 @@ interface ContainerProps {
     name: string;
 }
 
-
-
 // create async function getStatusBarHeight
 async function getStatusBarHeight() {
     try {
@@ -26,9 +24,6 @@ async function getStatusBarHeight() {
         return 0;
     }
 }
-
-
-
 
 const SettingsContainer: React.FC<ContainerProps> = () => {
     const context = useContext(SettingsContext);
